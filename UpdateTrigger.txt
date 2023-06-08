@@ -1,0 +1,9 @@
+CREATE TRIGGER PassengerStatusUpdate
+AFTER UPDATE ON passenger
+FOR EACH ROW
+BEGIN
+    IF NEW.Status_Reservation = 'Confirmed' AND OLD.Status_Reservation = 'Waiting' THEN
+        INSERT INTO audit_table (TrainID, Category, UpdateDateTime)
+        VALUES (NEW.TrainNumber, NEW.Category, NOW());
+    END IF;
+END;

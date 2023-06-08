@@ -1,0 +1,27 @@
+*HOW TO USE*
+CALL CancelBook(1);
+
+*CODE*
+DELIMITER //
+CREATE PROCEDURE CancelBook(
+    IN T_ID INT
+)
+BEGIN
+    DECLARE passID INT;
+    DECLARE StatusReserve VARCHAR(255);
+    DECLARE TrainNum INT;
+
+    SELECT TicketID INTO passID FROM passenger WHERE TicketID = T_ID;
+    SELECT TrainNumber INTO TrainNum FROM passenger WHERE TicketID = T_ID;
+    SELECT Status_Reservation INTO StatusReserve FROM passenger WHERE TicketID = T_ID;
+
+    IF StatusReserve = 'Confirmed' THEN
+        DELETE FROM passenger WHERE TicketID = T_ID;
+        UPDATE passenger SET Status_Reservation = 'Confirmed' WHERE Status_Reservation = 'Waiting' AND TrainNumber = TrainNum;
+        SELECT 'Cancelled Successfully.' AS Message;
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Passenger's Status Reservation not Confirmed";
+    END IF;
+END //
+DELIMITER ;
+

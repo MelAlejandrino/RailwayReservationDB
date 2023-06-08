@@ -1,0 +1,55 @@
+*HOW TO USE*
+CALL InsertPassenger(10, 12345, '2023-06-04', 'John Doe', 25, 'Male', '123 Main St', 'Waiting', 'AC');
+
+*CODE*
+DELIMITER //
+CREATE PROCEDURE InsertPassenger(
+    IN T_ID INT,
+    IN T_Number INT,
+    IN B_Date DATE,
+    IN P_Name VARCHAR(255),
+    IN P_Age INT,
+    IN P_Sex VARCHAR(255),
+    IN P_Address VARCHAR(255),
+    IN S_Reservation VARCHAR(255),
+    IN T_Category VARCHAR(255)
+)
+BEGIN
+    DECLARE ACSeat INT;
+    DECLARE ACSeatBooked INT;
+    DECLARE ACIncrement INT;
+    
+    DECLARE GENSeat INT;
+    DECLARE GENSeatBooked INT;
+    DECLARE GENIncrement INT;
+    
+    IF T_Category = 'AC' THEN
+        SELECT AC_Seat INTO ACSeat FROM trainstatus WHERE TrainNumber = T_Number LIMIT 1;
+        SELECT AC_Seat_Booked INTO ACSeatBooked FROM trainstatus WHERE TrainNumber = T_Number LIMIT 1;
+        SET ACIncrement = ACSeatBooked + 1;
+        
+        IF ACSeat <= ACSeatBooked THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'AC seats are fully booked.';
+        ELSE
+            INSERT INTO passenger (TicketID, TrainNumber, Booked_Date, Name, Age, Sex, Address, Status_Reservation, Ticket_Category)
+            VALUES (T_ID, T_Number, B_Date, P_Name, P_Age, P_Sex, P_Address, S_Reservation, T_Category);
+            UPDATE trainstatus SET AC_SEAT_BOOKED = ACIncrement WHERE TrainNumber = T_Number;
+            SELECT 'Booking inserted successfully.' AS Message;
+        END IF;
+    ELSE
+        SELECT Gen_Seat INTO GENSeat FROM trainstatus WHERE TrainNumber = T_Number LIMIT 1;
+        SELECT Gen_Seat_Booked INTO GENSeatBooked FROM trainstatus WHERE TrainNumber = T_Number LIMIT 1;
+        SET GENIncrement = GENSeatBooked + 1;
+        
+        IF GENSeat <= GENSeatBooked THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'GEN seats are fully booked.';
+        ELSE
+            INSERT INTO passenger (TicketID, TrainNumber, Booked_Date, Name, Age, Sex, Address, Status_Reservation, Ticket_Category)
+            VALUES (T_ID, T_Number, B_Date, P_Name, P_Age, P_Sex, P_Address, S_Reservation, T_Category);
+            UPDATE trainstatus SET GEN_SEAT_BOOKED = GENIncrement WHERE TrainNumber = T_Number;
+            SELECT 'Booking inserted successfully.' AS Message;
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+

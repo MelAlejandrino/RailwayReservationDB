@@ -1,0 +1,11 @@
+DELIMITER //
+
+CREATE PROCEDURE ReportAC(
+	IN T_Num INT,
+	IN T_Date DATE
+)
+BEGIN
+	SELECT TrainNumber, TrainDate, GEN_Seat_Booked AS `PASSENGERS ON GEN SEATS` FROM trainstatus WHERE TrainNumber = T_Num;
+END //
+
+DELIMITER ;
